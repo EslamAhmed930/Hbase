@@ -1,0 +1,135 @@
+services:
+  master1:
+    build:
+      context: .
+      target: base
+    hostname: master1
+    container_name: master1
+    ports:
+      - "8889:8888"
+      - "9878:9870"
+      - "2183:2181"
+    networks:
+      - hadoopnetwork
+    healthcheck:
+      test: ["CMD-SHELL", "hdfs haadmin -checkHealth nn1"]
+      interval: 15s
+      timeout: 7s
+      retries: 15
+      start_period: 15s
+
+  master2:
+    build:
+      context: .
+      target: base
+    hostname: master2
+    container_name: master2
+    ports:
+      - "8887:8888"
+      - "9877:9870"
+      - "2182:2181"
+    networks:
+      - hadoopnetwork
+    healthcheck:
+      test: ["CMD-SHELL", "hdfs haadmin -checkHealth nn2"]
+      interval: 15s
+      timeout: 7s
+      retries: 15
+      start_period: 15s
+
+  master3:
+    build:
+      context: .
+      target: base
+    hostname: master3
+    container_name: master3
+    ports:
+      - "8886:8888"
+      - "9876:9870"
+      - "2181:2181"
+    networks:
+      - hadoopnetwork
+    healthcheck:
+      test: ["CMD-SHELL", "hdfs haadmin -checkHealth nn3"]
+      interval: 15s
+      timeout: 7s
+      retries: 15
+      start_period: 15s
+
+  hr1:
+    build:
+      context: .
+      target: hbase
+    hostname: hr1
+    container_name: hr1
+    ports:
+      - "16019:16020"
+    networks:
+      - hadoopnetwork
+    depends_on:
+      master1:
+        condition: service_healthy
+      master2:
+        condition: service_healthy
+      master3:
+        condition: service_healthy
+
+  hr2:
+    build:
+      context: .
+      target: hbase
+    hostname: hr2
+    container_name: hr2
+    ports:
+      - "16020:16020"
+    networks:
+      - hadoopnetwork
+    depends_on:
+      master1:
+        condition: service_healthy
+      master2:
+        condition: service_healthy
+      master3:
+        condition: service_healthy
+
+  hm1:
+    build:
+      context: .
+      target: hbase
+    hostname: hm1
+    container_name: hm1
+    ports:
+      - "16000:16000"
+      - "16010:16010"
+    networks:
+      - hadoopnetwork
+    depends_on:
+      master1:
+        condition: service_healthy
+      master2:
+        condition: service_healthy
+      master3:
+        condition: service_healthy
+
+  hm2:
+    build:
+      context: .
+      target: hbase
+    hostname: hm2
+    container_name: hm2
+    ports:
+      - "16001:16000"
+      - "16011:16010"
+    networks:
+      - hadoopnetwork
+    depends_on:
+      master1:
+        condition: service_healthy
+      master2:
+        condition: service_healthy
+      master3:
+        condition: service_healthy
+
+networks:
+  hadoopnetwork:
+    driver: bridge
